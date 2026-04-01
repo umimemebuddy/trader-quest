@@ -1,0 +1,18 @@
+{
+  "name": "trader-quest",
+  "version": "1.0.0",
+  "description": "🚀 TRADER QUEST: 市场大战 - A fast-paced pixel roguelike game",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.70.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-phaser": "^0.0.1"
+  }
+}

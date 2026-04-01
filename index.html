@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' 'unsafe-inline';">
+  <title>🚀 TRADER QUEST: 市场大战</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Permanent+Marker&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #0a0a0f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Orbitron', sans-serif;
+      overflow: hidden;
+    }
+    
+    #game-container {
+      position: relative;
+      border: 3px solid #f7931a;
+      box-shadow: 
+        0 0 30px rgba(247, 147, 26, 0.4),
+        inset 0 0 60px rgba(247, 147, 26, 0.1);
+    }
+    
+    #loading-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(ellipse at top, rgba(30, 20, 10, 0.9) 0%, #0a0a0f 60%),
+        linear-gradient(180deg, #1a1008 0%, #0a0a0f 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 100;
+      overflow: hidden;
+    }
+    
+    /* 顶部交易所风格栏 */
+    .exchange-header {
+      width: 100%;
+      background: linear-gradient(180deg, #1a1208 0%, #0f0a04 100%);
+      border-bottom: 2px solid #f7931a;
+      padding: 8px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .exchange-logo {
+      font-size: 14px;
+      font-weight: bold;
+      color: #f7931a;
+      text-shadow: 0 0 10px #f7931a;
+    }
+    
+    .ticker-tape {
+      flex: 1;
+      overflow: hidden;
+      margin: 0 20px;
+      white-space: nowrap;
+    }
+    
+    .ticker-content {
+      display: inline-block;
+      animation: tickerScroll 30s linear infinite;
+      font-size: 12px;
+    }
+    
+    .ticker-item {
+      display: inline-block;
+      margin: 0 15px;
+      color: #888;
+    }
+    
+    .ticker-item.up { color: #00ff88; }
+    .ticker-item.down { color: #ff4444; }
+    
+    .ticker-symbol { font-weight: bold; color: #fff; }
+    .ticker-price { }
+    .ticker-change { }
+    
+    @keyframes tickerScroll {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    
+    /* 主内容区 - 三栏对称布局 */
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 16px;
+      width: 100%;
+      height: calc(100% - 50px);
+      padding: 16px;
+    }
+    
+    .panel {
+      background: rgba(20, 15, 10, 0.85);
+      border: 1px solid rgba(247, 147, 26, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .panel-title {
+      font-size: 10px;
+      color: #f7931a;
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(247, 147, 26, 0.2);
+    }
+    
+    /* 左侧K线区 */
+    .chart-section {
+      justify-content: center;
+    }
+    
+    .chart-title {
+      font-size: 11px;
+      color: #f7931a;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid rgba(247, 147, 26, 0.3);
+      padding-bottom: 8px;
+    }
+    
+    .kline-chart {
+      height: 150px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding: 10px 0;
+    }
+    
+    .kline-bar {
+      flex: 1;
+      background: linear-gradient(180deg, #00ff88 0%, #008844 100%);
+      border-radius: 2px 2px 0 0;
+      animation: klineGrow 1s ease-out forwards;
+      opacity: 0.8;
+    }
+    
+    .kline-bar.red {
+      background: linear-gradient(180deg, #ff4444 0%, #aa2222 100%);
+    }
+    
+    @keyframes klineGrow {
+      from { height: 0; }
+    }
+    
+    /* MEME币表情包 */
+    .meme-section {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(247, 147, 26, 0.2);
+    }
+    
+    .meme-coin {
+      font-size: 36px;
+      animation: memeFloat 2s ease-in-out infinite;
+      cursor: default;
+    }
+    
+    .meme-coin:nth-child(2) { animation-delay: 0.3s; }
+    .meme-coin:nth-child(3) { animation-delay: 0.6s; }
+    .meme-coin:nth-child(4) { animation-delay: 0.9s; }
+    
+    @keyframes memeFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+    
+    .meme-price {
+      text-align: center;
+      font-size: 10px;
+      color: #00ff88;
+      margin-top: 5px;
+    }
+    
+    /* 右侧信息区 */
+    .info-section {
+      gap: 12px;
+    }
+    
+    /* 中间主游戏区 */
+    .center-section {
+      justify-content: center;
+      align-items: center;
+    }
+    
+    /* 游戏标题区 */
+    .game-title-box {
+      background: linear-gradient(135deg, #1a1208 0%, #2a1a08 100%);
+      border: 2px solid #f7931a;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(247, 147, 26, 0.3);
+      max-width: 320px;
+    }
+    
+    .game-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      animation: rocketBounce 1s ease-in-out infinite;
+    }
+    
+    @keyframes rocketBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    
+    .game-title {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f7931a, #ffd700, #f7931a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 15px rgba(247, 147, 26, 0.8));
+      letter-spacing: 2px;
+    }
+    
+    .game-subtitle {
+      font-family: 'Permanent+Marker', cursive;
+      font-size: 12px;
+      color: #ffd700;
+      margin-top: 6px;
+      letter-spacing: 2px;
+    }
+    
+    /* MEME标语 */
+    .meme-slogan {
+      background: rgba(255, 100, 0, 0.1);
+      border: 1px dashed #ff6600;
+      border-radius: 6px;
+      padding: 10px;
+      margin: 12px 0;
+      font-family: 'Permanent+Marker', cursive;
+      font-size: 11px;
+      color: #ff8800;
+      animation: sloganPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes sloganPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    
+    /* 订单簿风格 */
+    .order-book {
+      margin-top: auto;
+    }
+    
+    .order-title {
+      margin-bottom: 8px;
+    }
+    
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      margin: 3px 0;
+      background: rgba(247, 147, 26, 0.05);
+    }
+    
+    .order-bid { color: #00ff88; }
+    .order-ask { color: #ff4444; }
+    
+    /* 开始按钮 */
+    .start-btn {
+      background: linear-gradient(180deg, #f7931a 0%, #cc7700 100%);
+      border: 3px solid #ffd700;
+      border-radius: 10px;
+      padding: 14px 36px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      box-shadow: 
+        0 0 30px rgba(247, 147, 26, 0.6),
+        inset 0 0 20px rgba(255, 215, 0, 0.3);
+      transition: all 0.3s ease;
+      animation: btnPulse 2s ease-in-out infinite;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      width: 100%;
+      max-width: 260px;
+    }
+    
+    .start-btn:hover {
+      background: linear-gradient(180deg, #ffaa33 0%, #dd8800 100%);
+      transform: scale(1.05);
+      box-shadow: 
+        0 0 50px rgba(247, 147, 26, 0.9),
+        inset 0 0 30px rgba(255, 215, 0, 0.4);
+    }
+    
+    @keyframes btnPulse {
+      0%, 100% { box-shadow: 0 0 30px rgba(247, 147, 26, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.3); }
+      50% { box-shadow: 0 0 50px rgba(247, 147, 26, 0.8), inset 0 0 30px rgba(255, 215, 0, 0.4); }
+    }
+    
+    /* 控制说明 */
+    .controls-hint {
+      padding: 12px;
+    }
+    
+    .controls-title {
+      margin-bottom: 10px;
+    }
+    
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    
+    .control-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+    }
+    
+    .control-key {
+      background: linear-gradient(180deg, #2a1a08 0%, #1a1004 100%);
+      border: 1px solid #f7931a;
+      border-radius: 4px;
+      padding: 4px 8px;
+      color: #ffd700;
+      font-weight: bold;
+      font-size: 9px;
+      min-width: 45px;
+      text-align: center;
+    }
+    
+    /* 浮动表情 */
+    .floating-emojis {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .float-emoji {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0.3;
+      animation: floatUp 8s linear infinite;
+    }
+    
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.3; }
+      90% { opacity: 0.3; }
+      100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+    }
+    
+    /* 底部状态栏 */
+    .status-bar {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: linear-gradient(180deg, #0f0a04 0%, #1a1208 100%);
+      border-top: 1px solid rgba(247, 147, 26, 0.3);
+      padding: 6px 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #666;
+    }
+    
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00ff88;
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    
+    /* 扫描线 */
+    #loading-screen::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(247, 147, 26, 0.02) 2px,
+        rgba(247, 147, 26, 0.02) 4px
+      );
+      pointer-events: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <div id="loading-screen">
+      <!-- 浮动表情背景 -->
+      <div class="floating-emojis" id="floating-emojis"></div>
+      
+      <!-- 顶部交易所栏 -->
+      <div class="exchange-header">
+        <div class="exchange-logo">🐕 MEME.EXCHANGE</div>
+        <div class="ticker-tape">
+          <div class="ticker-content" id="ticker-content">
+            <!-- JS填充 -->
+          </div>
+        </div>
+        <div style="font-size: 10px; color: #666;">24H VOL: $888.88B</div>
+      </div>
+      
+      <!-- 主内容 - 三栏对称布局 -->
+      <div class="main-content">
+        <!-- 左栏：K线图 -->
+        <div class="panel chart-section">
+          <div class="panel-title">📈 MEME/USDT 永续合约</div>
+          <div class="kline-chart" id="kline-chart"></div>
+          <div class="meme-section">
+            <div><div class="meme-coin">🐕</div><div class="meme-price">DOGE +420%</div></div>
+            <div><div class="meme-coin">🐶</div><div class="meme-price">SHIB +888%</div></div>
+            <div><div class="meme-coin">🚀</div><div class="meme-price">PEPE +1337%</div></div>
+            <div><div class="meme-coin">🌙</div><div class="meme-price">MOON +999%</div></div>
+          </div>
+        </div>
+        
+        <!-- 中栏：游戏标题 -->
+        <div class="panel center-section">
+          <div class="game-title-box">
+            <div class="game-icon">🚀💰⚔️</div>
+            <div class="game-title">TRADER QUEST</div>
+            <div class="game-subtitle">WEN MOON? TO THE MOON!</div>
+            <div class="meme-slogan">💎 HODL THE LINE! 💎</div>
+            <button class="start-btn" id="start-btn">▶ START GAME</button>
+          </div>
+        </div>
+        
+        <!-- 右栏：订单簿+控制 -->
+        <div class="panel info-section">
+          <div class="panel-title">📊 ORDER BOOK</div>
+          <div class="order-book">
+            <div class="order-row"><span class="order-bid">BUY 0.08888</span><span>→ 100M</span></div>
+            <div class="order-row"><span class="order-bid">BUY 0.08666</span><span>→ 250M</span></div>
+            <div class="order-row"><span class="order-bid">BUY 0.08420</span><span>→ 500M</span></div>
+            <div class="order-row"><span class="order-ask">SELL 0.09999</span><span>→ 69M</span></div>
+            <div class="order-row"><span class="order-ask">SELL 0.10001</span><span>→ 42M</span></div>
+          </div>
+          
+          <div class="controls-hint" style="margin-top: auto;">
+            <div class="panel-title">🎮 CONTROLS</div>
+            <div class="controls-grid">
+              <div class="control-item">
+                <span class="control-key">WASD</span><span>移动</span>
+              </div>
+              <div class="control-item">
+                <span class="control-key">SPACE</span><span>攻击</span>
+              </div>
+              <div class="control-item">
+                <span class="control-key">E</span><span>矿机</span>
+              </div>
+              <div class="control-item">
+                <span class="control-key">Q</span><span>升级</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 底部状态栏 -->
+      <div class="status-bar">
+        <div class="status-item"><div class="status-dot"></div>SYSTEM ONLINE</div>
+        <div class="status-item">WALLET: 连接中...</div>
+        <div class="status-item">TO THE MOON! 🚀</div>
+      </div>
+    </div>
+  </div>
+  
+  <script type="module" src="/src/main.js"></script>
+  
+  <script>
+    // 行情滚动
+    const tickers = [
+      { symbol: 'DOGE', price: '0.08888', change: '+420.69%', up: true },
+      { symbol: 'SHIB', price: '0.0000888', change: '+888.88%', up: true },
+      { symbol: 'PEPE', price: '0.0000888', change: '+1337%', up: true },
+      { symbol: 'BTC', price: '888,888', change: '+69%', up: true },
+      { symbol: 'ETH', price: '66,666', change: '+42%', up: true },
+      { symbol: 'MOON', price: '0.99999', change: '+999%', up: true },
+      { symbol: 'FLOKI', price: '0.08888', change: '+420%', up: true },
+      { symbol: 'ELON', price: '0.00888', change: '+888%', up: true },
+      { symbol: 'BONK', price: '0.00123', change: '+123%', up: true },
+      { symbol: 'WIF', price: '2.88', change: '+288%', up: true },
+      { symbol: 'BTC', price: '50,000', change: '-69%', up: false },
+      { symbol: 'ETH', price: '3,000', change: '-42%', up: false },
+    ];
+    
+    const tickerContent = document.getElementById('ticker-content');
+    let tickerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      tickers.forEach(t => {
+        const cls = t.up ? 'up' : 'down';
+        const arrow = t.up ? '▲' : '▼';
+        tickerHTML += `<span class="ticker-item ${cls}"><span class="ticker-symbol">${t.symbol}</span> $${t.price} <span class="ticker-change">${arrow}${t.change}</span></span>`;
+      });
+    }
+    tickerContent.innerHTML = tickerHTML;
+    
+    // K线图
+    const klineChart = document.getElementById('kline-chart');
+    for (let i = 0; i < 40; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'kline-bar';
+      const height = 30 + Math.random() * 70;
+      bar.style.height = height + '%';
+      bar.style.animationDelay = (i * 0.03) + 's';
+      if (Math.random() > 0.7) bar.classList.add('red');
+      klineChart.appendChild(bar);
+    }
+    
+    // 浮动表情
+    const emojis = ['🐕', '🚀', '💎', '🌙', '🔥', '💰', '🐶', '🦍', '⚡', '🎮'];
+    const floatContainer = document.getElementById('floating-emojis');
+    for (let i = 0; i < 15; i++) {
+      const el = document.createElement('div');
+      el.className = 'float-emoji';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = Math.random() * 100 + '%';
+      el.style.animationDelay = Math.random() * 8 + 's';
+      el.style.animationDuration = (6 + Math.random() * 4) + 's';
+      floatContainer.appendChild(el);
+    }
+  </script>
+</body>
+</html>
